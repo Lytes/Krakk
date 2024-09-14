@@ -1,0 +1,15 @@
+Reactjs solana app. Import solana wallet adapter and its default css
+
+Layout:
+   body
+      navbar
+         solana multi-button
+            upper right, use its default css 
+         logo
+            upper left, logo.png
+      main:
+         Js: Get all bounty_accts
+         3 sub menus to switch between the 3 hash types
+            
+
+

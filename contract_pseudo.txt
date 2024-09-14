@@ -1,0 +1,74 @@
+An anchor rust solana contract that allows users place a solana bounty on an hash
+
+Other users can claim the bounty by submitting the clear text that was hashed
+
+Using solana_program::hash::hashv
+solana_program::keccak::hashv
+solana_program::blake3::hashv
+
+File structure
+lib.rs
+errors.rs
+state.rs
+instructions.rs
+instructions/
+    claim_bounty
+    remove_bounty
+    place_bounty
+
+3 instructions
+   place_bounty
+   claim_bounty
+   remove_bounty
+
+
+struct HashBounty:
+   amt: u64
+   creator: pubkey
+   hash: [u8, 32] should contain a BLAKE3, SHA256 or SHA3 hash
+   time_created: u64
+   extra_info: String 96 bytes
+
+place_bounty(amount: u64, hash: [u8;32], extra_info: String/str )
+accounts
+   signer
+   bounty_acct (init, pda, seed=hash, type HashBounty)
+
+logic
+   verify or error
+      hash length
+      extra_info should be max 96 bytes
+   set bounty_acct HashBounty info
+      amt => amount u64
+      creator=> signer.key pubkey
+      hash=> [u8, 32] should contain a BLAKE3, SHA256 or SHA3 hash
+      time_created => clock::get current time u64
+      extra_info => extra_info 96 bytes
+   send amount lamports from signer to bounty_acct
+
+
+claim_bounty(clear_txt: string, hash_type: BLAKE3/SHA256/SHA3)
+accounts
+   signer
+   bounty_acct (close,send rent to bounty_acct.creator, pda, seed=hash, type HashBounty)
+logic
+   verify or error
+      Ensure the clear_txt when hashed produces the saved hash
+      hash_type(clear_txt) == bounty_acct.hash 
+         Using solana_program::hash::hashv
+         solana_program::keccak::hashv
+         solana_program::blake3::hashv
+   send bounty_acct.amt lamports from bounty_acct to signer
+
+
+remove_bounty()
+accounts
+   signer (signer.key == bounty_acct.creator)
+   bounty_acct (close, send rent to signer, pda, seed=hash, type HashBounty)
+logic
+   verify or error
+      clock::get current time must be at least 14 days after bounty_acct.time_created
+   send bounty_acct.amt lamports from bounty_acct to signer
+   ok()
+
+Code only. Explain code blocks via comments. Use industry standard secure anchorlang rust 0.30.1 code
